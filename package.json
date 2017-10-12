@@ -1,11 +1,11 @@
 {
   "name": "graceful-cluster",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "Gracefully restart node.js http cluster with zero downtime. Shutdown server without active inbound connections reset.",
   "main": "index.js",
   "repository" : {
     "type": "git",
-    "url":  "https://github.com/itteco/graceful-cluster.git"
+    "url":  "https://github.com/igtm/graceful-cluster.git"
   },
   "keywords": [
     "http",
