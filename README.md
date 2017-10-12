@@ -1,8 +1,9 @@
-# Graceful cluster
+# Awesome Graceful Cluster
+- This repo is folked from [graceful-cluster](https://github.com/itteco/graceful-cluster) to add support of graceful server shotdown (if remaing connection, not shutting down soon).
 
 Install:
 
-    npm install graceful-cluster
+    npm install awesome-graceful-cluster
     
 ## How to use
 
@@ -18,7 +19,7 @@ var express = require('express');
 var app = express();
 var listener = app.listen(8000);
 
-var GracefulServer = require('graceful-cluster').GracefulServer;
+var GracefulServer = require('awesome-graceful-cluster').GracefulServer;
 var gracefulServer = new GracefulServer({
     server: listener,
     shutdownTimeout: 10 * 1000,             // 10 sec.
@@ -53,7 +54,7 @@ Also it can gracefully restart all workers one by one with zero cluster downtime
 Example 'cluster.js':
 
 ```js
-var GracefulCluster = require('graceful-cluster').GracefulCluster;
+var GracefulCluster = require('awesome-graceful-cluster').GracefulCluster;
 
 process.title = '<your-cluster-title>';     // Note, process title must be near filename (cluster.js) length, longer title truncated.
 
@@ -61,10 +62,27 @@ GracefulCluster.start({
     shutdownTimeout: 10 * 1000,             // 10 sec.
     restartOnTimeout: 5 * 3600 * 1000,      // 5 hours.
     restartOnMemory: 150 * 1024 * 1024,     // 150 MB.
-    serverFunction: function() {
-        require('./server');                // Your 'server.js' code module with server logic.
-    }
+    serverFunction: function() {  // Your 'server.js' code module with server logic.
+        var express = require('express');
+        var app = express();
+        var listener = app.listen(8000);
+        return [listener, app];
+    }         
 });
+```
+
+Example 'app.js':
+
+```js
+...
+    app.use(function(req, res, next){
+        if (app.get('graceful_shutdown') === true) {
+            console.log('Connection:close header was sent.')
+            res.set('Connection', 'close');
+        }
+        next();
+    });
+...
 ```
 
 GracefulCluster options description:
@@ -79,6 +97,8 @@ GracefulCluster options description:
 | `serverFunction`         | **required**, function with worker logic.
 | `shutdownTimeout`        | ms, optional. force worker shutdown on `SIGTERM` timeout. Defaults to 5000ms.
 | `workersCount`           | workers count, if not specified `os.cpus().length` will be used.
+| `minimumWorkerProcessHealthPercent`  | represents a lower limit on the number of worker servers that must remain in the RUNNING state during restarting, as a percentage of the desired number of servers .
+| `workerProcessShutdownTimeout`       | worker process force showdown timeout.
 
 ### Gracefully restart cluster
 
