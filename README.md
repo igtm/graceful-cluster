@@ -1,5 +1,7 @@
 # Awesome Graceful Cluster
 - This repo is folked from [graceful-cluster](https://github.com/itteco/graceful-cluster) to add support of graceful server shotdown (if remaing connection, not shutting down soon).
+- This repo is very EXPERIMENTAL and not well documented yet. if you consider to use in production, please be careful.
+- I only change 'graceful-cluster.js' file from original source code;
 
 Install:
 
@@ -62,16 +64,16 @@ GracefulCluster.start({
     shutdownTimeout: 10 * 1000,             // 10 sec.
     restartOnTimeout: 5 * 3600 * 1000,      // 5 hours.
     restartOnMemory: 150 * 1024 * 1024,     // 150 MB.
-    serverFunction: function() {  // Your 'server.js' code module with server logic.
+    serverFunction: function() {  // Your 'server.js' code module with server logic. you must return [server, app]
         var express = require('express');
         var app = express();
-        var listener = app.listen(8000);
-        return [listener, app];
+        var server = app.listen(8000);
+        return [server, app];
     }         
 });
 ```
 
-Example 'app.js':
+Example 'app.js': (insert kind of below code so that you can close existing connection)
 
 ```js
 ...
@@ -98,7 +100,8 @@ GracefulCluster options description:
 | `shutdownTimeout`        | ms, optional. force worker shutdown on `SIGTERM` timeout. Defaults to 5000ms.
 | `workersCount`           | workers count, if not specified `os.cpus().length` will be used.
 | `minimumWorkerProcessHealthPercent`  | represents a lower limit on the number of worker servers that must remain in the RUNNING state during restarting, as a percentage of the desired number of servers .
-| `workerProcessShutdownTimeout`       | worker process force showdown timeout.
+| `workerProcessDisconnectDelay`       | worker process graceful showdown delay time.
+| `workerProcessForceShutdownTimeout`  | worker process force showdown timeout (after workerProcessDisconnectDelay time).
 
 ### Gracefully restart cluster
 
